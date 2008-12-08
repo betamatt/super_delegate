@@ -6,9 +6,9 @@ module ActiveRecord
     end
     
     module ClassMethods
-      # has_columns :from => :dest, :except => "id"
-      # has_columns :from => :dest, :only => [ "title", "name" ], :prefix => "src_"
-      def has_columns(*args)
+      # super_delgates :from => :dest, :except => "id"
+      # super_delgates :from => :dest, :only => [ "title", "name" ], :prefix => "src_"
+      def super_delgates(*args)
         options = args.pop
         
         raise ArgumentError, "Too many parameters" unless args.empty?
@@ -27,13 +27,13 @@ module ActiveRecord
         prefix = options[:prefix]
         columns.each do |column|
           as = prefix.nil? ? column : prefix+column
-          has_column column, :from => from, :as => as
+          super_delgate column, :from => from, :as => as
         end
       end
       
-      # has_column :col_name, :from => :dest, :as => :new_name
-      # has_column :col_name, :from => :dest
-      def has_column(*args)
+      # super_delgate :col_name, :from => :dest, :as => :new_name
+      # super_delgate :col_name, :from => :dest
+      def super_delgate(*args)
         # Parameter wrangling
         options = args.pop; col_name = args.pop
         col_name = col_name.to_sym if col_name.is_a?(String)
@@ -48,7 +48,7 @@ module ActiveRecord
         options[:as].nil? ? as = col_name : as = options[:as]
 
         # Squirt in the new method
-        module_eval(<<-EOS, "has_column", 1)
+        module_eval(<<-EOS, "super_delgate", 1)
           def #{as}(*args, &block)
             #{from}.nil? ? nil : #{from}.__send__(#{col_name.inspect}, *args, &block)
           end
