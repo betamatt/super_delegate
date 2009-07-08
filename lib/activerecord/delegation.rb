@@ -8,13 +8,9 @@ module ActiveRecord
     module ClassMethods
       # super_delegates :from => :dest, :except => "id"
       # super_delegates :from => :dest, :only => [ "title", "name" ], :prefix => "src_"
-      def super_delegates(*args)
-        options = args.pop
-        
-        raise ArgumentError, "Too many parameters" unless args.empty?
-        
+      def super_delegates(options)                
         unless options.is_a?(Hash) && from = options[:from]
-          raise ArgumentError, "Must specify a source object"
+          raise ArgumentError, "Must specify a source association"
         end
         
         reflection = reflect_on_association(from)
@@ -34,24 +30,18 @@ module ActiveRecord
       
       # super_delegate :col_name, :from => :dest, :as => :new_name
       # super_delegate :col_name, :from => :dest
-      def super_delegate(*args)
-        # Parameter wrangling
-        options = args.pop; col_name = args.pop
-        col_name = col_name.to_sym if col_name.is_a?(String)
-        
-        raise ArgumentError, "Too many parameters" unless args.empty?
-        
-        unless options.is_a?(Hash) && col_name.is_a?(Symbol) && from=options[:from] 
-          raise ArgumentError, "Must specify a column name and a source object" 
+      def super_delegate(col_name, options)      
+        unless options.is_a?(Hash) && from=options[:from] 
+          raise ArgumentError, "Must specify a source association" 
         end
 
         # Any method renaming going on?
-        options[:as].nil? ? as = col_name : as = options[:as]
+        as = options[:as].nil? ? col_name : options[:as]
 
         # Squirt in the new method
         module_eval(<<-EOS, "super_delegate", 1)
           def #{as}(*args, &block)
-            #{from}.nil? ? nil : #{from}.__send__(#{col_name.inspect}, *args, &block)
+            #{from}.nil? ? nil : #{from}.__send__(:#{col_name}, *args, &block)
           end
         EOS
       end
