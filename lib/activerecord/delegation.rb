@@ -41,7 +41,11 @@ module ActiveRecord
         # Squirt in the new method
         module_eval(<<-EOS, "super_delegate", 1)
           def #{as}(*args, &block)
-            #{from}.nil? ? nil : #{from}.__send__(:#{col_name}, *args, &block)
+            #{from}.send(:#{col_name}, *args, &block)
+          end
+          
+          def #{as}=(*args, &block)
+            #{from}.send(:#{col_name}=, *args, &block)
           end
         EOS
       end
