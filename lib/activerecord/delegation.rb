@@ -17,7 +17,8 @@ module ActiveRecord
           raise ArgumentError, "Must specify a source object"
         end
         
-        source_columns = eval(from.to_s.singularize.capitalize + ".column_names")
+        reflection = reflect_on_association(from)
+        source_columns = reflection.klass.column_names
         case
           when only = options[:only]: columns = source_columns & Array(only)
           when except = options[:except]: columns = source_columns - Array(except)
