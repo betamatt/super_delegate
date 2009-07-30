@@ -47,6 +47,12 @@ module ActiveRecord
           def #{as}=(*args, &block)
             #{from}.send(:#{col_name}=, *args, &block)
           end
+          
+          after_validation lambda {|obj| 
+            if obj.#{from} && errors = obj.#{from}.errors.on(:#{col_name})
+              errors.each {|e| obj.errors.add(:#{as}, e)}
+            end  
+          }
         EOS
       end
     end
