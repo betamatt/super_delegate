@@ -14,11 +14,13 @@ module ActiveRecord
         end
         
         reflection = reflect_on_association(from)
-        source_columns = reflection.klass.column_names
         case
-          when only = options[:only]: columns = source_columns & Array(only)
-          when except = options[:except]: columns = source_columns - Array(except)
-          else columns = source_columns
+          when only = options[:only]: columns = Array(only)
+            
+          # These options are dangerous!  Forcing the model to hit the db during initialization breaks rake when the 
+          # table doesn't exist yet.
+          when except = options[:except]: columns = reflection.klass.column_names - Array(except)
+          else columns = reflection.klass.column_names
         end
 
         prefix = options[:prefix]
